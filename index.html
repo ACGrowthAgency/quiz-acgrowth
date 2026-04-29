@@ -78,9 +78,18 @@
       .main-content {
         justify-content: flex-start !important;
         padding-top: 16px !important;
+        padding-bottom: 60px !important;
       }
       .inicio-btn-gap { margin-bottom: 80px !important; }
-      footer { padding: 8px 20px !important; }
+      footer {
+        padding: 8px 20px !important;
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        background: #071828 !important;
+        z-index: 10 !important;
+      }
     }
     @keyframes pulse {
       0%, 100% { opacity: 1; }
