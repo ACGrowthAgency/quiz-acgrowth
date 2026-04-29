@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A&C Growth Agency — Quiz</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;900&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy: #0F2A44;
+      --navy-deep: #071828;
+      --navy-mid: #0d1e36;
+      --orange: #2970C8;
+      --orange-dark: #1f5fad;
+      --green: #3FB56A;
+      --white: #F7F6F2;
+      --surface: #ffffff;
+      --border: rgba(15,42,68,0.12);
+      --text: #1A1A1A;
+      --muted: #6B7280;
+      --shadow-2: 0 4px 8px rgba(20,14,4,.06), 0 8px 24px rgba(20,14,4,.10);
+      --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'IBM Plex Sans', sans-serif;
+      background: var(--navy-deep);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #root { height: 100%; }
+
+    button { cursor: pointer; font-family: inherit; border: none; background: none; }
+
+    input {
+      font-family: 'IBM Plex Sans', sans-serif;
+      width: 100%;
+      padding: 14px 16px;
+      font-size: 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      transition: border-color 200ms var(--ease-out);
+    }
+    input:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(242,109,33,0.12); }
+    input.error { border-color: #E63946; }
+    input::placeholder { color: #9CA3AF; }
+
+    .screen-enter {
+      animation: fadeUp 300ms var(--ease-out) both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .spin { animation: spin 1s linear infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .pulse { animation: pulse 2s ease-in-out infinite; }
+
+    @keyframes checkmark {
+      from { stroke-dashoffset: 50; }
+      to   { stroke-dashoffset: 0; }
+    }
+
+    .ticker-wrap {
+      overflow: hidden;
+      position: relative;
+    }
+    .ticker-track {
+      display: flex;
+      transition: transform 500ms var(--ease-out);
+    }
+    .ticker-item {
+      min-width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+const WHATSAPP = "17543032535";
+
+const CLIENTES = [
+  { nome: "Carlos Mendes", cidade: "Houston", data: "04/03/2026" },
+  { nome: "Ana Oliveira", cidade: "Los Angeles", data: "07/03/2026" },
+  { nome: "Roberto Santos", cidade: "Newark", data: "11/03/2026" },
+  { nome: "Juliana Costa", cidade: "Atlanta", data: "14/03/2026" },
+  { nome: "Fernando Lima", cidade: "Dallas", data: "19/03/2026" },
+  { nome: "Mariana Souza", cidade: "San Diego", data: "23/03/2026" },
+  { nome: "Paulo Ferreira", cidade: "Phoenix", data: "28/03/2026" },
+  { nome: "Camila Rodrigues", cidade: "Denver", data: "02/04/2026" },
+  { nome: "Lucas Almeida", cidade: "Chicago", data: "09/04/2026" },
+  { nome: "Beatriz Martins", cidade: "Las Vegas", data: "15/04/2026" },
+  { nome: "Ricardo Gomes", cidade: "Seattle", data: "18/04/2026" },
+  { nome: "Patricia Nunes", cidade: "Austin", data: "21/04/2026" },
+  { nome: "Eduardo Silva", cidade: "San Antonio", data: "24/04/2026" },
+  { nome: "Renata Campos", cidade: "Charlotte", data: "26/04/2026" },
+  { nome: "Marcos Ribeiro", cidade: "Portland", data: "28/04/2026" },
+];
+
+const STEPS_WITH_TICKER = ["nome","telefone","clientes","verificando","aceito","preferencia"];
+
+const PROGRESS = {
+  nome:     { current: 1, total: 3, pct: 33 },
+  telefone: { current: 2, total: 3, pct: 66 },
+  clientes: { current: 3, total: 3, pct: 100 },
+};
+
+/* ── icons (inline SVG) ── */
+function Icon({ name, size = 20, color = "currentColor", strokeWidth = 1.5 }) {
+  const paths = {
+    user:       <><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></>,
+    phone:      <><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.15 10.6 19.79 19.79 0 0 1 1.08 2.18 2 2 0 0 1 3.06 0h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 7.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16.92z"/></>,
+    users:      <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
+    chevron:    <polyline points="9 18 15 12 9 6"/>,
+    chat:       <><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></>,
+    calendar:   <><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></>,
+    check:      <polyline points="20 6 9 17 4 12" strokeDasharray="50" strokeDashoffset="0" style={{animation: "checkmark 400ms ease forwards 200ms", strokeDashoffset:50}}/>,
+    loader:     <><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></>,
+  };
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      {paths[name]}
+    </svg>
+  );
+}
+
+/* ── Progress bar ── */
+function ProgressBar({ step }) {
+  const p = PROGRESS[step];
+  if (!p) return null;
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 600, letterSpacing: ".08em", color: "var(--muted)", marginBottom: 8 }}>
+        <span>PERGUNTA {p.current} DE {p.total}</span>
+        <span>{p.pct}%</span>
+      </div>
+      <div style={{ height: 3, background: "#E5E7EB", borderRadius: 99, overflow: "hidden" }}>
+        <div style={{ height: "100%", width: `${p.pct}%`, background: "var(--orange)", borderRadius: 99, transition: "width 400ms var(--ease-out)" }} />
+      </div>
+    </div>
+  );
+}
+
+/* ── Card wrapper ── */
+function QuizCard({ children, key }) {
+  return (
+    <div className="screen-enter" style={{ background: "var(--surface)", borderRadius: 24, boxShadow: "var(--shadow-2)", padding: 24, width: "100%", maxWidth: 400, margin: "0 auto" }}>
+      {children}
+    </div>
+  );
+}
+
+/* ── Option button ── */
+function OptionBtn({ onClick, icon, title, desc }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <button onClick={onClick}
+      onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+      style={{
+        width: "100%", padding: "14px 16px", background: hov ? "rgba(242,109,33,0.04)" : "#fff",
+        border: `1.5px solid ${hov ? "var(--orange)" : "var(--border)"}`, borderRadius: 12,
+        display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+        transition: "all 150ms var(--ease-out)", textAlign: "left",
+      }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        {icon && <div style={{ width: 40, height: 40, borderRadius: 99, background: hov ? "rgba(242,109,33,0.1)" : "#F3F4F6", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "background 150ms" }}>
+          {icon}
+        </div>}
+        <div>
+          <p style={{ fontWeight: 600, fontSize: 14, color: "var(--text)", lineHeight: 1.3 }}>{title}</p>
+          {desc && <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>{desc}</p>}
+        </div>
+      </div>
+      <Icon name="chevron" size={18} color={hov ? "var(--orange)" : "var(--muted)"} />
+    </button>
+  );
+}
+
+/* ── Primary button ── */
+function PrimaryBtn({ onClick, children, disabled }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <button onClick={onClick} disabled={disabled}
+      onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+      style={{
+        width: "100%", padding: "15px 24px", background: hov ? "var(--orange-dark)" : "var(--orange)",
+        color: "#fff", fontFamily: "'Archivo', sans-serif", fontWeight: 700, fontSize: 15,
+        borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+        transition: "background 120ms", marginTop: 16, opacity: disabled ? 0.5 : 1,
+      }}>
+      {children}
+      <Icon name="chevron" size={18} color="#fff" />
+    </button>
+  );
+}
+
+/* ── Label pill above question ── */
+function StepLabel({ icon, label }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--orange)", marginBottom: 6 }}>
+      <Icon name={icon} size={16} color="var(--orange)" />
+      <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: ".06em" }}>{label}</span>
+    </div>
+  );
+}
+
+/* ── Main Quiz ── */
+function Quiz() {
+  const [step, setStep] = useState("inicio");
+  const [form, setForm] = useState({ nome: "", telefone: "", interesse: null, clientes: null, preferencia: null });
+  const [errors, setErrors] = useState({});
+  const [tickerIdx, setTickerIdx] = useState(0);
+
+  // Ticker rotation
+  useEffect(() => {
+    if (!STEPS_WITH_TICKER.includes(step)) return;
+    const id = setInterval(() => setTickerIdx(i => (i + 1) % CLIENTES.length), 8000);
+    return () => clearInterval(id);
+  }, [step]);
+
+  // Auto-advance from "verificando"
+  useEffect(() => {
+    if (step !== "verificando") return;
+    const id = setTimeout(() => setStep("aceito"), 2800);
+    return () => clearTimeout(id);
+  }, [step]);
+
+  const openWhatsApp = (msg) => {
+    window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`, "_blank");
+  };
+
+  const submitNome = () => {
+    if (!form.nome.trim()) { setErrors({ nome: "Nome é obrigatório" }); return; }
+    setErrors({}); setStep("telefone");
+  };
+
+  const submitTelefone = () => {
+    if (!form.telefone.trim()) { setErrors({ telefone: "Telefone é obrigatório" }); return; }
+    setErrors({}); setStep("clientes");
+  };
+
+  const chooseInteresse = (v) => {
+    setForm(f => ({ ...f, interesse: v }));
+    if (v === "emprego") {
+      openWhatsApp("Olá! Tenho interesse na vaga de emprego da A&C Growth Agency.");
+      setStep("despedida");
+    } else {
+      setStep("clientes");
+    }
+  };
+
+  const chooseClientes = (v) => {
+    setForm(f => ({ ...f, clientes: v }));
+    setStep("verificando");
+  };
+
+  const choosePreferencia = (v) => {
+    setForm(f => ({ ...f, preferencia: v }));
+    const msg = v === "agora"
+      ? "Olá! Acabei de responder o quiz e gostaria de conversar agora."
+      : "Olá! Acabei de responder o quiz e gostaria de marcar uma reunião.";
+    openWhatsApp(msg);
+    setStep("despedida");
+  };
+
+  const showTicker = STEPS_WITH_TICKER.includes(step);
+  const c = CLIENTES[tickerIdx];
+
+  return (
+    <div style={{ minHeight: "100vh", background: "linear-gradient(180deg, #071828 0%, var(--navy-mid) 50%, #071828 100%)", display: "flex", flexDirection: "column" }}>
+
+      {/* Header */}
+      <header style={{ padding: "20px 20px 0" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <img src="logo.png" alt="A&C Growth Agency" style={{ width: 52, height: 52, objectFit: "contain" }} />
+          <span style={{ color: "#fff", fontFamily: "'Archivo', sans-serif", fontWeight: 700, fontSize: 17, letterSpacing: "-.01em" }}>A&amp;C Growth Agency</span>
+        </div>
+
+        {/* Ticker */}
+        {showTicker && (
+          <div style={{ marginTop: 12, overflow: "hidden" }}>
+            <div style={{ display: "flex", transition: "transform 500ms var(--ease-out)", transform: `translateX(-${tickerIdx * 100}%)` }}>
+              {CLIENTES.map((cl, i) => (
+                <div key={i} style={{ minWidth: "100%", display: "flex", justifyContent: "center" }}>
+                  <div style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 99, padding: "6px 16px", display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ width: 7, height: 7, background: "#3FB56A", borderRadius: "50%", display: "inline-block", flexShrink: 0 }}></span>
+                    <span style={{ color: "rgba(255,255,255,0.75)", fontSize: 12 }}>
+                      <strong style={{ color: "#fff" }}>{cl.nome}</strong> de {cl.cidade} está escalando desde {cl.data}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </header>
+
+      {/* Main */}
+      <main style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "24px 20px 32px" }}>
+
+        {/* ── INÍCIO ── */}
+        {step === "inicio" && (
+          <div className="screen-enter" style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+            <h1 style={{ fontFamily: "'Archivo', sans-serif", fontWeight: 900, fontSize: "clamp(42px,10vw,60px)", color: "#fff", lineHeight: 1.05, letterSpacing: "-.03em" }}>
+              Mais clientes
+            </h1>
+            <h2 style={{ fontFamily: "'Archivo', sans-serif", fontWeight: 900, fontSize: "clamp(42px,10vw,60px)", color: "var(--orange)", lineHeight: 1.05, letterSpacing: "-.03em", marginBottom: 40 }}>
+              nos EUA
+            </h2>
+
+            <button onClick={() => setStep("nome")} style={{
+              padding: "16px 40px", background: "var(--orange)", color: "#fff", borderRadius: 99,
+              fontFamily: "'Archivo', sans-serif", fontWeight: 700, fontSize: 17,
+              display: "flex", alignItems: "center", gap: 8,
+              boxShadow: "0 4px 20px rgba(242,109,33,0.4)", transition: "transform 120ms, box-shadow 120ms",
+            }}
+              onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 6px 28px rgba(242,109,33,0.5)"; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 4px 20px rgba(242,109,33,0.4)"; }}
+            >
+              Começar quiz <Icon name="chevron" size={20} color="#fff" />
+            </button>
+
+            <p style={{ color: "rgba(255,255,255,0.4)", marginTop: 14, fontSize: 13 }}>60 segundos · 4 perguntas</p>
+
+            <div style={{ marginTop: 28, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 99, padding: "10px 20px", display: "flex", alignItems: "center", gap: 8 }}>
+              <span className="pulse" style={{ width: 8, height: 8, background: "#3FB56A", borderRadius: "50%", display: "inline-block", flexShrink: 0 }}></span>
+              <span style={{ color: "rgba(255,255,255,0.8)", fontSize: 13 }}>+150 empresários escalando suas vendas nesse momento</span>
+            </div>
+          </div>
+        )}
+
+        {/* ── NOME ── */}
+        {step === "nome" && (
+          <QuizCard>
+            <ProgressBar step="nome" />
+            <StepLabel icon="user" label="VAMOS COMEÇAR" />
+            <h2 style={{ fontFamily: "'Archivo', sans-serif", fontWeight: 800, fontSize: 24, color: "var(--text)", marginBottom: 20 }}>Qual é o seu nome?</h2>
+            <input
+              placeholder="Ex: João Silva"
+              className={errors.nome ? "error" : ""}
+              value={form.nome}
+              onChange={e => setForm(f => ({ ...f, nome: e.target.value }))}
+              onKeyDown={e => e.key === "Enter" && submitNome()}
+              autoFocus
+            />
+            {errors.nome && <p style={{ fontSize: 12, color: "#E63946", marginTop: 4 }}>{errors.nome}</p>}
+            <PrimaryBtn onClick={submitNome}>Continuar</PrimaryBtn>
+          </QuizCard>
+        )}
+
+        {/* ── TELEFONE ── */}
+        {step === "telefone" && (
+          <QuizCard>
+            <ProgressBar step="telefone" />
+            <StepLabel icon="phone" label="CONTATO" />
+            <h2 style={{ fontFamily: "'Archivo', sans-serif", fontWeight: 800, fontSize: 24, color: "var(--text)", marginBottom: 6 }}>Qual seu telefone ou WhatsApp?</h2>
+            <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 20 }}>Usaremos para enviar sua proposta personalizada.</p>
+            <input
+              type="tel"
+              placeholder="+1 (305) 123-4567"
+              className={errors.telefone ? "error" : ""}
+              value={form.telefone}
+              onChange={e => setForm(f => ({ ...f, telefone: e.target.value }))}
+              onKeyDown={e => e.key === "Enter" && submitTelefone()}
+              autoFocus
+            />
+            {errors.telefone && <p style={{ fontSize: 12, color: "#E63946", marginTop: 4 }}>{errors.telefone}</p>}
+            <PrimaryBtn onClick={submitTelefone}>Continuar</PrimaryBtn>
+          </QuizCard>
+        )}
+
+        {/* ── CLIENTES ── */}
+        {step === "clientes" && (
+          <QuizCard>
+            <ProgressBar step="clientes" />
+            <StepLabel icon="users" label="ÚLTIMA PERGUNTA" />
+            <h2 style={{ fontFamily: "'Archivo', sans-serif", fontWeight: 800, fontSize: 22, color: "var(--text)", marginBottom: 6 }}>Quantos clientes você atende em média por mês?</h2>
+            <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 20 }}>Seja sincero — isso nos ajuda a montar a estratégia ideal para você.</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {[
+                { value: "1-10",   label: "Até 10 clientes",      desc: "Pronto para crescer" },
+                { value: "11-50",  label: "11 a 50 clientes",     desc: "Em crescimento" },
+                { value: "51-150", label: "51 a 150 clientes",    desc: "Negócio estabelecido" },
+                { value: "150+",   label: "Mais de 150 clientes", desc: "Operação consolidada" },
+              ].map(opt => (
+                <OptionBtn key={opt.value} onClick={() => chooseClientes(opt.value)} title={opt.label} desc={opt.desc} />
+              ))}
+            </div>
+          </QuizCard>
+        )}
+
+        {/* ── VERIFICANDO ── */}
+        {step === "verificando" && (
+          <QuizCard>
+            <div className="screen-enter" style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", padding: "16px 0" }}>
+              <div style={{ width: 80, height: 80, borderRadius: "50%", background: "rgba(242,109,33,0.1)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
+                <div className="spin">
+                  <Icon name="loader" size={40} color="var(--orange)" strokeWidth={1.5} />
+                </div>
+              </div>
+              <h2 style={{ fontFamily: "'Archivo', sans-serif", fontWeight: 800, fontSize: 22, color: "var(--text)", marginBottom: 8 }}>Verificando seu perfil</h2>
+              <p style={{ color: "var(--muted)", fontSize: 14 }}>Verificando disponibilidade da equipe...</p>
+            </div>
+          </QuizCard>
+        )}
+
+        {/* ── ACEITO ── */}
+        {step === "aceito" && (
+          <QuizCard>
+            <div className="screen-enter" style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", padding: "8px 0" }}>
+              <div style={{ width: 80, height: 80, borderRadius: "50%", background: "#DCFCE7", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" strokeDasharray="50" style={{ animation: "checkmark 500ms ease forwards 100ms", strokeDashoffset: 50 }} />
+                </svg>
+              </div>
+              <h2 style={{ fontFamily: "'Archivo', sans-serif", fontWeight: 800, fontSize: 22, color: "var(--text)", marginBottom: 8, lineHeight: 1.2 }}>
+                Seu perfil foi aceito para receber a Consultoria!
+              </h2>
+              <p style={{ color: "var(--muted)", fontSize: 14, marginBottom: 8 }}>Última etapa: escolha como prefere ser atendido.</p>
+              <PrimaryBtn onClick={() => setStep("preferencia")}>Continuar</PrimaryBtn>
+            </div>
+          </QuizCard>
+        )}
+
+        {/* ── PREFERÊNCIA ── */}
+        {step === "preferencia" && (
+          <QuizCard>
+            <StepLabel icon="chat" label="ÚLTIMA ETAPA" />
+            <h2 style={{ fontFamily: "'Archivo', sans-serif", fontWeight: 800, fontSize: 22, color: "var(--text)", marginBottom: 6 }}>Como prefere ser atendido?</h2>
+            <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 20 }}>Escolha a melhor forma de contato para você.</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <OptionBtn
+                onClick={() => choosePreferencia("agora")}
+                icon={<Icon name="chat" size={20} color="#16A34A" />}
+                title="Gostaria de conversar agora por WhatsApp"
+              />
+              <OptionBtn
+                onClick={() => choosePreferencia("reuniao")}
+                icon={<Icon name="calendar" size={20} color="var(--orange)" />}
+                title="Gostaria de Marcar uma Reunião"
+              />
+            </div>
+          </QuizCard>
+        )}
+
+        {/* ── DESPEDIDA ── */}
+        {step === "despedida" && (
+          <QuizCard>
+            <div className="screen-enter" style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", padding: "8px 0" }}>
+              <div style={{ width: 80, height: 80, borderRadius: "50%", background: "rgba(242,109,33,0.12)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" strokeDasharray="50" style={{ animation: "checkmark 500ms ease forwards 100ms", strokeDashoffset: 50 }} />
+                </svg>
+              </div>
+              <h2 style={{ fontFamily: "'Archivo', sans-serif", fontWeight: 800, fontSize: 24, color: "var(--text)", marginBottom: 10 }}>
+                Obrigado{form.nome ? `, ${form.nome.split(" ")[0]}` : ""}!
+              </h2>
+              <p style={{ color: "var(--muted)", fontSize: 14, lineHeight: 1.6 }}>
+                Em seguida nossa equipe vai entrar em contato para agendar a sua reunião. Fique de olho no seu WhatsApp!
+              </p>
+            </div>
+          </QuizCard>
+        )}
+
+      </main>
+
+      {/* Footer */}
+      <footer style={{ padding: "16px 20px", textAlign: "center" }}>
+        <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 11 }}>
+          © 2026 A&amp;C Growth Agency — Especialistas em crescimento para empresários brasileiros nos EUA
+        </p>
+      </footer>
+
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<Quiz />);
+</script>
+</body>
+</html>
