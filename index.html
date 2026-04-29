@@ -70,6 +70,12 @@
     }
     .spin { animation: spin 1s linear infinite; }
 
+    @media (max-width: 640px) {
+      .inicio-content {
+        justify-content: flex-start !important;
+        padding-top: 32px !important;
+      }
+    }
     @keyframes pulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.4; }
@@ -326,7 +332,7 @@ function Quiz() {
 
         {/* ── INÍCIO ── */}
         {step === "inicio" && (
-          <div className="screen-enter" style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+          <div className="screen-enter inicio-content" style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
             <h1 style={{ fontFamily: "'Archivo', sans-serif", fontWeight: 900, fontSize: "clamp(42px,10vw,60px)", color: "#fff", lineHeight: 1.05, letterSpacing: "-.03em" }}>
               Mais clientes
             </h1>
@@ -346,7 +352,7 @@ function Quiz() {
               Começar quiz <Icon name="chevron" size={20} color="#fff" />
             </button>
 
-            <p style={{ color: "rgba(255,255,255,0.4)", marginTop: 14, fontSize: 13 }}>60 segundos · 4 perguntas</p>
+            <p style={{ color: "rgba(255,255,255,0.4)", marginTop: 14, fontSize: 13 }}>30 segundos · 3 perguntas</p>
 
             <div style={{ marginTop: 28, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 99, padding: "10px 20px", display: "flex", alignItems: "center", gap: 8 }}>
               <span className="pulse" style={{ width: 8, height: 8, background: "#3FB56A", borderRadius: "50%", display: "inline-block", flexShrink: 0 }}></span>
