@@ -273,7 +273,15 @@ function Quiz() {
   };
 
   const submitTelefone = () => {
-    if (!form.telefone.trim()) { setErrors({ telefone: "Telefone é obrigatório" }); return; }
+    if (!form.telefone.trim()) {
+      setErrors({ telefone: "Telefone é obrigatório" });
+      return;
+    }
+    const digits = form.telefone.replace(/\D/g, "");
+    if (digits.length < 10 || digits.length > 11) {
+      setErrors({ telefone: "Digite um número válido com 10 ou 11 dígitos (ex: +1 305 123-4567)" });
+      return;
+    }
     setErrors({}); setStep("clientes");
   };
 
